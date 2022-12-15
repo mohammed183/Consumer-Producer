@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
 		s = s + ',' + to_string(price);
 		s = str + s + '\n';
 		strcpy(str, s.c_str());
-		cout << s << endl;
 		// End of Critical Section
 		clock_gettime( CLOCK_REALTIME ,&ts );
 		ts.tv_sec += 7200;

@@ -15,14 +15,14 @@ using namespace std;
 map <string, int> mp;
 
 // functions used in main
-void handler_function(int sig);    
+void handler_function(int sig);
 void fill(vector<deque<double>>& v, string str);
 void initMemSem();
 void end();
 void printCon(vector<deque<double>> v);
 
 // Global variables
-union semun  
+union semun
 {
 	int val;
 	struct semid_ds *buf;
@@ -31,9 +31,9 @@ union semun
 
 char* str;
 int mutex_sem, con_sem, prod_sem, shmid, memsize, BOUND;
-struct sembuf asem[1];
+struct sembuf asem [1];
 key_t key;
-    
+
 int main(int argc, char *argv[])
 {
     // initialize map
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 		if (semop (prod_sem, asem, 1) == -1) {
 	   		perror ("semop: prod_sem"); exit (1);
         	}
-        	// Fill and print vector of deques
+        // Fill and print vector of deques
 		fill(v, tmp2);
 		printCon(v);
 	}
@@ -114,8 +114,8 @@ void initMemSem(){
 	if ((mutex_sem = semget (key, 1, 0666 | IPC_CREAT)) == -1) {
         	perror ("semget Mutex"); exit (1);
     	}
-    	// Giving initial value. 
-	sem_attr.val = 1;      
+    	// Giving initial value.
+	sem_attr.val = 1;
 	if (semctl (mutex_sem, 0, SETVAL, sem_attr) == -1) {
 		perror ("semctl Mutex SETVAL"); exit (1);
 	}
@@ -127,8 +127,8 @@ void initMemSem(){
 	if ((con_sem = semget (key, 1, 0666 | IPC_CREAT)) == -1) {
         	perror ("semget Con"); exit (1);
     	}
-    	// Giving initial value. 
-	sem_attr.val = 0;      
+    	// Giving initial value.
+	sem_attr.val = 0;
 	if (semctl (con_sem, 0, SETVAL, sem_attr) == -1) {
 		perror ("semctl Con SETVAL"); exit (1);
 	}
@@ -140,8 +140,8 @@ void initMemSem(){
 	if ((prod_sem = semget (key, 1, 0666 | IPC_CREAT)) == -1) {
         	perror ("semget Prod"); exit (1);
     	}
-    	// Giving initial value. 
-	sem_attr.val = BOUND;      
+    	// Giving initial value.
+	sem_attr.val = BOUND;
 	if (semctl (prod_sem, 0, SETVAL, sem_attr) == -1) {
 		perror ("semctl Prod SETVAL"); exit (1);
 	}
@@ -150,7 +150,7 @@ void initMemSem(){
 // function to make sure only 6 items on deque ( first 1-5 for current average ---- 2-6 for previous average )
 void only4(vector<deque<double>>& v){
 	for (auto& deq : v)
-		while ( deq.size() > 6 ) 
+		while ( deq.size() > 6 )
 			deq.pop_back();
 }
 
@@ -161,7 +161,7 @@ void fill(vector<deque<double>>& v, string str){
     	string tmp= "";
     	int i = 0;
     	while(s[i] != ',') {
-    		key += s[i];        
+    		key += s[i];
     		i++;
     	}
     	i++;
@@ -196,6 +196,7 @@ int count_digit(int number) {
 double getAvg(deque<double> vals, int k) {
 	int count = 0;
 	double sum = 0;
+	if ( k == 5 && vals.size() < 6) k = 6;
 	for (int i = 0; i < vals.size(); i++) {
 		if ( i == k ) continue;
 		count++;
@@ -207,15 +208,16 @@ double getAvg(deque<double> vals, int k) {
 
 // print function using previous helper functions
 void printCon(vector<deque<double>> v) {
-	system("clear");
+    system("clear");
 	string up = "↑";
 	string down = "↓";
 	double c, avg, prevAvg, prev;
-	cout << "+-------------------------------------+" << endl;
-	cout << "| Currency      |  Price   | AvgPrice |" << endl;
-	cout << "+-------------------------------------+" << endl;
+	//╚╝╬═╩╠╣╦╔╗║
+	cout << "╔═══════════════╦══════════╦══════════╗" << endl;
+	cout << "║ Currency      ║  Price   ║ AvgPrice ║" << endl;
+	cout << "╠═══════════════╬══════════╬══════════╣" << endl;
 	for ( auto i : mp ) {
-		cout << "| " << i.first << printSpace(14 - i.first.size()) << "|";
+		cout << "║ " << i.first << printSpace(14 - i.first.size()) << "║";
 		int ind = i.second;
 		avg = getAvg(v[ind],5);
 		prevAvg = getAvg(v[ind],0);
@@ -225,41 +227,43 @@ void printCon(vector<deque<double>> v) {
 			int w = 3 - count_digit((int) c);
 	    		cout << printSpace(w/2 + w%2);
 	    		printf("\033[32m%7.2lf%s \033[0m",c,up.c_str());
-	    		cout << "|";
+	    		cout << "║";
 		}
 		else if ( c < prev ) {
 			int w = 3 - count_digit((int) c);
 	    		cout << printSpace(w/2 + w%2);
 	    		printf("\033[31m%7.2lf%s \033[0m",c,down.c_str());
-	    		cout << "|";
+	    		cout << "║";
 		}
 		else {
 			int w = 4 - count_digit((int) c);
 	    		cout << printSpace(w/2);
 	    		printf("%7.2lf",c);
-	    		cout << printSpace(w/2 + w%2) << "|";
+	    		cout << printSpace(w/2 + w%2) << "║";
 		}
-		
+
 		if ( avg > prevAvg ) {
 			int w = 3 - count_digit((int) avg);
 	    		cout << printSpace(w/2 + w%2);
 	    		printf("\033[32m%7.2lf%s \033[0m",avg,up.c_str());
-	    		cout << "|" <<endl;
+	    		cout << "║" <<endl;
 		}
 		else if ( avg < prevAvg ) {
 			int w = 3 - count_digit((int) avg);
 	    		cout << printSpace(w/2 + w%2);
 	    		printf("\033[31m%7.2lf%s \033[0m",avg,down.c_str());
-	    		cout << "|" <<endl;
+	    		cout << "║" <<endl;
 		}
 		else {
 			int w = 4 - count_digit((int) avg);
 	    		cout << printSpace(w/2);
 	    		printf("%7.2lf",c);
-	    		cout << printSpace(w/2 + w%2) << "|" <<endl;
+	    		cout << printSpace(w/2 + w%2) << "║" <<endl;
 		}
 	}
-	cout << "+-------------------------------------+" << endl;
+	cout << "╚═══════════════╩══════════╩══════════╝" << endl;
+
+
 }
 
 // Handles ctrl C
